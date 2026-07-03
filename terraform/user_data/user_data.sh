@@ -1,133 +1,89 @@
 #!/bin/bash
 
-set -euxo pipefail
+set -euo pipefail
 
-echo "===== SYSTEM UPDATE ====="
-apt update -y
-apt upgrade -y
+LOG_FILE="/var/log/devops-bootstrap.log"
 
-echo "===== BASE PACKAGES ====="
-apt install -y \
-    curl \
-    wget \
-    git \
-    unzip \
-    apt-transport-https \
-    ca-certificates \
-    gnupg \
-    lsb-release \
-    software-properties-common
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+echo "========================================"
+echo "Terraform CI/CD Bootstrap Started"
+echo "========================================"
 
 ####################################################
-# JAVA (Required for Jenkins)
+# Update System
 ####################################################
-echo "===== INSTALLING JAVA ====="
-apt install -y openjdk-21-jdk
 
-####################################################
-# JENKINS INSTALLATION
-####################################################
-echo "===== INSTALLING JENKINS (FIXED METHOD) ====="
-
-curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | tee \
-  /usr/share/keyrings/jenkins-keyring.asc > /dev/null
-
-echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
-  https://pkg.jenkins.io/debian-stable binary/ | tee \
-  /etc/apt/sources.list.d/jenkins.list > /dev/null
-
-apt update -y
-apt install -y jenkins
-
-systemctl enable jenkins
-systemctl start jenkins
+apt-get update -y
 
 ####################################################
-# DOCKER INSTALLATION
+# Go to Project Directory
 ####################################################
-echo "===== INSTALLING DOCKER ====="
-apt install -y docker.io
+
+PROJECT_DIR="/home/ubuntu/terraform-cicd-project"
+
+if [ ! -d "$PROJECT_DIR" ]; then
+    echo "ERROR: Project directory not found: $PROJECT_DIR"
+    exit 1
+fi
+
+cd "$PROJECT_DIR"
+
+####################################################
+# Make All Scripts Executable
+####################################################
+
+chmod +x scripts/install/*.sh
+chmod +x scripts/configure/*.sh
+chmod +x scripts/verify/*.sh
+
+####################################################
+# Install Software
+####################################################
+
+bash scripts/install/install_git.sh
+bash scripts/install/install_java.sh
+bash scripts/install/install_docker.sh
+bash scripts/install/install_jenkins.sh
+bash scripts/install/install_kubectl.sh
+bash scripts/install/install_minikube.sh
+bash scripts/install/install_helm.sh
+
+####################################################
+# Configure Docker
+####################################################
+
+bash scripts/configure/configure_docker.sh
+
+####################################################
+# Start Services
+####################################################
 
 systemctl enable docker
-systemctl start docker
-
-# IMPORTANT: Fix permissions for Jenkins + Ubuntu user
-usermod -aG docker ubuntu || true
-usermod -aG docker jenkins || true
-
-####################################################
-# KUBECTL INSTALLATION
-####################################################
-echo "===== INSTALLING KUBECTL ====="
-
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-
-chmod +x kubectl
-mv kubectl /usr/local/bin/
-
-####################################################
-# MINIKUBE INSTALLATION
-####################################################
-echo "===== INSTALLING MINIKUBE ====="
-
-curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-
-install minikube-linux-amd64 /usr/local/bin/minikube
-
-####################################################
-# START MINIKUBE (Docker driver)
-####################################################
-echo "===== STARTING MINIKUBE ====="
+systemctl enable jenkins
 
 systemctl restart docker
-
-minikube start --driver=docker || true
-
-####################################################
-# HELM INSTALLATION
-####################################################
-echo "===== INSTALLING HELM ====="
-
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+systemctl restart jenkins
 
 ####################################################
-# ARGO CD INSTALLATION
+# Start Minikube as ubuntu User
 ####################################################
-echo "===== INSTALLING ARGO CD ====="
 
-kubectl create namespace argocd || true
+sudo -u ubuntu bash <<EOF
 
-kubectl apply -n argocd \
-  -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml || true
+minikube start \
+    --driver=docker \
+    --cpus=2 \
+    --memory=2500
 
-####################################################
-# PROMETHEUS + GRAFANA
-####################################################
-echo "===== INSTALLING MONITORING STACK ====="
-
-kubectl create namespace monitoring || true
-
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
-helm repo update
-
-helm install prometheus prometheus-community/kube-prometheus-stack \
-    --namespace monitoring || true
+EOF
 
 ####################################################
-# FINAL FIX (IMPORTANT)
+# Verify Installation
 ####################################################
-echo "===== FINAL SYSTEM FIX ====="
 
-# ensure docker permissions are applied
-newgrp docker || true
+sudo -u ubuntu bash scripts/verify/verify_installation.sh
 
-# optional reboot to stabilize services
-# reboot
-
-####################################################
-# COMPLETION MESSAGE
-####################################################
-echo "===== SETUP COMPLETE ====="
-echo "Jenkins: http://<EC2-PUBLIC-IP>:8080"
-echo "Grafana: http://<EC2-PUBLIC-IP>:3000"
-echo "Prometheus: http://<EC2-PUBLIC-IP>:9090"
+echo "========================================"
+echo "Bootstrap Completed Successfully"
+echo "========================================"
