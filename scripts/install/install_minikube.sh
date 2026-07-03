@@ -12,7 +12,7 @@ echo "========================================"
 
 if ! systemctl is-active --quiet docker; then
     echo "Docker is not running. Starting Docker..."
-    systemctl start docker
+    sudo systemctl start docker
 fi
 
 ####################################################
@@ -21,7 +21,7 @@ fi
 
 curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
 
-install minikube-linux-amd64 /usr/local/bin/minikube
+sudo install minikube-linux-amd64 /usr/local/bin/minikube
 
 rm -f minikube-linux-amd64
 
@@ -36,6 +36,12 @@ echo "========================================"
 minikube version
 
 ####################################################
+# Delete old root-owned cluster (optional)
+####################################################
+
+sudo minikube delete >/dev/null 2>&1 || true
+
+####################################################
 # Start Minikube
 ####################################################
 
@@ -46,31 +52,19 @@ echo "========================================"
 minikube start \
     --driver=docker \
     --cpus=2 \
-    --memory=4096 \
-    --force
+    --memory=2500
 
 ####################################################
-# Wait for Kubernetes
+# Wait for Cluster
 ####################################################
 
-echo "Waiting for Kubernetes node..."
-
-for i in {1..30}; do
-    if kubectl get nodes >/dev/null 2>&1; then
-        break
-    fi
-
-    echo "Attempt $i/30..."
-    sleep 10
-done
+kubectl wait \
+    --for=condition=Ready node/minikube \
+    --timeout=300s
 
 ####################################################
-# Verify Cluster
+# Verify
 ####################################################
-
-echo "========================================"
-echo "Cluster Information"
-echo "========================================"
 
 kubectl get nodes
 
