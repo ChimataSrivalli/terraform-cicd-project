@@ -18,18 +18,22 @@ fi
 echo "Java Version:"
 java -version
 
+
 ####################################################
 # Install Jenkins Repository
 ####################################################
+
+apt-get install -y curl gnupg
 
 mkdir -p /etc/apt/keyrings
 
 curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key \
 | gpg --dearmor \
-| tee /etc/apt/keyrings/jenkins.gpg >/dev/null
+| sudo tee /etc/apt/keyrings/jenkins.gpg >/dev/null
 
 echo "deb [signed-by=/etc/apt/keyrings/jenkins.gpg] https://pkg.jenkins.io/debian-stable binary/" \
-> /etc/apt/sources.list.d/jenkins.list
+| sudo tee /etc/apt/sources.list.d/jenkins.list >/dev/null
+
 
 ####################################################
 # Install Jenkins
