@@ -22,7 +22,7 @@ apt install -y \
 # JAVA (Required for Jenkins)
 ####################################################
 echo "===== INSTALLING JAVA ====="
-apt install -y openjdk-17-jdk
+apt install -y openjdk-21-jdk
 
 ####################################################
 # JENKINS INSTALLATION
