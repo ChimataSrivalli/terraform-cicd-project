@@ -30,7 +30,7 @@ resource "aws_instance" "devops" {
     volume_type = var.volume_type
   }
 
- user_data = file("${path.module}/../../scripts/user_data.sh")
+ user_data = file("${path.module}/../../user_data/user_data.sh")
 
   tags = {
     Name = "${var.project_name}-${var.environment}-ec2"
