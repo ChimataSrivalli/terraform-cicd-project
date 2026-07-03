@@ -27,14 +27,14 @@ apt install -y openjdk-21-jdk
 ####################################################
 # JENKINS INSTALLATION
 ####################################################
-echo "===== INSTALLING JENKINS ====="
+echo "===== INSTALLING JENKINS (FIXED METHOD) ====="
 
-curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key | tee \
-    /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | tee \
+  /usr/share/keyrings/jenkins-keyring.asc > /dev/null
 
 echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
-    https://pkg.jenkins.io/debian-stable binary/ | tee \
-    /etc/apt/sources.list.d/jenkins.list > /dev/null
+  https://pkg.jenkins.io/debian-stable binary/ | tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
 
 apt update -y
 apt install -y jenkins
