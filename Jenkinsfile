@@ -14,15 +14,14 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image (Minikube)') {
-            steps {
-                sh '''
-                eval $(minikube docker-env)
-                cd application
-                docker build -t devops-app:1.0 .
-                '''
-            }
-        }
+        stage('Build Docker Image') {
+    steps {
+        sh '''
+        cd application
+        docker build -t devops-app:1.0 .
+        '''
+    }
+}
 
         stage('Deploy to Kubernetes') {
             steps {
