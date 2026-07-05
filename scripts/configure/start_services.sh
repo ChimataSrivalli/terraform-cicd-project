@@ -12,8 +12,8 @@ echo "========================================"
 
 echo "Starting Docker..."
 
-systemctl enable docker
-systemctl restart docker
+sudo systemctl enable docker
+sudo systemctl restart docker
 
 ####################################################
 # Start Jenkins
@@ -21,8 +21,8 @@ systemctl restart docker
 
 echo "Starting Jenkins..."
 
-systemctl enable jenkins
-systemctl restart jenkins
+sudo systemctl enable jenkins
+sudo systemctl restart jenkins
 
 ####################################################
 # Wait for Jenkins
@@ -31,24 +31,25 @@ systemctl restart jenkins
 sleep 20
 
 ####################################################
+# Check Docker Access
+####################################################
+
+docker ps >/dev/null
+
+####################################################
 # Start Minikube
 ####################################################
 
 echo "Checking Minikube..."
 
 if ! minikube status >/dev/null 2>&1; then
-
     echo "Starting Minikube..."
-
     minikube start \
         --driver=docker \
         --cpus=2 \
         --memory=2500
-
 else
-
     echo "Minikube is already running."
-
 fi
 
 ####################################################
@@ -59,7 +60,7 @@ echo "========================================"
 echo "Docker Status"
 echo "========================================"
 
-systemctl is-active docker
+sudo systemctl is-active docker
 
 ####################################################
 # Verify Jenkins
@@ -69,7 +70,7 @@ echo "========================================"
 echo "Jenkins Status"
 echo "========================================"
 
-systemctl is-active jenkins
+sudo systemctl is-active jenkins
 
 ####################################################
 # Verify Minikube
