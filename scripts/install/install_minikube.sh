@@ -33,7 +33,7 @@ echo "========================================"
 sudo -u ubuntu minikube start \
     --driver=docker \
     --cpus=2 \
-    --memory=4096 \
+    --memory=3072 \
     --kubernetes-version=stable \
     --embed-certs \
     --wait=all
