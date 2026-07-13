@@ -82,10 +82,7 @@ echo "========================================"
 
 echo "Jenkins is running on port 8080."
 echo "Access it using your EC2 public IP:"
-<<<<<<< HEAD
-=======
 
->>>>>>> ee667f1 (2)
 echo "http://${PUBLIC_IP}:8080"
 
 echo "========================================"
