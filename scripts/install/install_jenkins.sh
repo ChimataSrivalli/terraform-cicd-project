@@ -28,26 +28,26 @@ sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | \
 sudo tee /etc/apt/keyrings/jenkins-keyring.asc >/dev/null
 
+
 echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | \
 sudo tee /etc/apt/sources.list.d/jenkins.list >/dev/null
-
 ####################################################
 # Install Jenkins
 ####################################################
 
-apt-get update -y
+sudo apt-get update -y
 
-apt-get install -y jenkins
+sudo apt-get install -y jenkins
 
 ####################################################
 # Enable Jenkins
 ####################################################
 
-systemctl daemon-reload
+sudo systemctl daemon-reload
 
-systemctl enable jenkins
+sudo systemctl enable jenkins
 
-systemctl restart jenkins
+sudo systemctl restart jenkins
 
 sleep 15
 
@@ -82,8 +82,6 @@ echo "========================================"
 
 echo "Jenkins is running on port 8080."
 echo "Access it using your EC2 public IP:"
-PUBLIC_IP=$(curl -s http://checkip.amazonaws.com)
-
 echo "http://${PUBLIC_IP}:8080"
 
 echo "========================================"
