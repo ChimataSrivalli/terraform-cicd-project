@@ -3,72 +3,46 @@
 set -euo pipefail
 
 echo "========================================"
-echo "DevOps Environment Verification"
+echo "Verifying Installation"
 echo "========================================"
 
-PASS=0
-FAIL=0
+echo
+echo "Git"
+git --version
 
-check() {
-    NAME="$1"
-    COMMAND="$2"
+echo
+echo "Java"
+java -version
 
-    echo -n "Checking ${NAME} ... "
+echo
+echo "Docker"
+docker --version
 
-    if eval "$COMMAND" >/dev/null 2>&1; then
-        echo "PASS"
-        PASS=$((PASS+1))
-    else
-        echo "FAIL"
-        FAIL=$((FAIL+1))
-    fi
-}
+echo
+echo "kubectl"
+kubectl version --client
 
-####################################################
-# Installed Software
-####################################################
+echo
+echo "Minikube"
+minikube version
 
-check "Git" "command -v git"
-check "Java" "command -v java"
-check "Docker" "command -v docker"
-check "Jenkins" "command -v jenkins"
-check "kubectl" "command -v kubectl"
-check "Minikube" "command -v minikube"
-check "Helm" "command -v helm"
+echo
+echo "Helm"
+helm version
 
-####################################################
-# Services
-####################################################
+echo
+echo "Jenkins"
+sudo systemctl status jenkins --no-pager
 
-check "Docker Service" "systemctl is-active --quiet docker"
-check "Jenkins Service" "systemctl is-active --quiet jenkins"
+echo
+echo "Kubernetes Nodes"
+kubectl get nodes
 
-####################################################
-# Kubernetes
-####################################################
-
-check "Minikube Running" "minikube status | grep -q 'Running'"
-check "Kubernetes API" "kubectl cluster-info"
-check "Kubernetes Nodes" "kubectl get nodes"
-
-####################################################
-# Summary
-####################################################
+echo
+echo "Pods"
+kubectl get pods -A
 
 echo
 echo "========================================"
-echo "Verification Summary"
+echo "Verification Completed Successfully"
 echo "========================================"
-
-echo "Passed : $PASS"
-echo "Failed : $FAIL"
-
-if [ "$FAIL" -eq 0 ]; then
-    echo
-    echo "All components are installed and working."
-    exit 0
-else
-    echo
-    echo "Some components failed verification."
-    exit 1
-fi

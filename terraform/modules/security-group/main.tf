@@ -88,6 +88,19 @@ resource "aws_vpc_security_group_ingress_rule" "prometheus" {
   ip_protocol = "tcp"
 
 }
+resource "aws_vpc_security_group_ingress_rule" "prometheus" {
+
+  security_group_id = aws_security_group.this.id
+
+  cidr_ipv4 = "0.0.0.0/0"
+
+  from_port = 8081
+
+  to_port = 8081
+
+  ip_protocol = "tcp"
+
+}
 resource "aws_vpc_security_group_ingress_rule" "k8s_nodeports" {
 
   security_group_id = aws_security_group.this.id

@@ -82,7 +82,9 @@ echo "========================================"
 
 echo "Jenkins is running on port 8080."
 echo "Access it using your EC2 public IP:"
-echo "http://<EC2-PUBLIC-IP>:8080"
+PUBLIC_IP=$(curl -s http://checkip.amazonaws.com)
+
+echo "http://${PUBLIC_IP}:8080"
 
 echo "========================================"
 echo "Installation Complete"

@@ -2,88 +2,116 @@
 
 set -euo pipefail
 
-LOG_FILE="/var/log/devops-bootstrap.log"
+LOG_FILE="/var/log/bootstrap.log"
 
-exec > >(tee -a "$LOG_FILE") 2>&1
+exec > >(tee -a "$LOG_FILE")
+exec 2>&1
 
-echo "========================================"
-echo "Terraform CI/CD Bootstrap Started"
-echo "========================================"
-
-####################################################
-# Update System
-####################################################
-
-apt-get update -y
+echo "=================================================="
+echo " DevOps CI/CD Bootstrap Started"
+echo "=================================================="
 
 ####################################################
-# Go to Project Directory
+# Update Ubuntu
 ####################################################
 
-PROJECT_DIR="/home/ubuntu/terraform-cicd-project"
-
-if [ ! -d "$PROJECT_DIR" ]; then
-    echo "ERROR: Project directory not found: $PROJECT_DIR"
-    exit 1
-fi
-
-cd "$PROJECT_DIR"
+sudo apt-get update -y
+sudo apt-get upgrade -y
 
 ####################################################
-# Make All Scripts Executable
+# Move to Project Directory
 ####################################################
 
-chmod +x scripts/install/*.sh
-chmod +x scripts/configure/*.sh
-chmod +x scripts/verify/*.sh
+cd /workspaces/terraform-cicd-project/terraform
+
+chmod -R +x scripts
 
 ####################################################
-# Install Software
+# Installation Scripts
 ####################################################
 
-bash scripts/install/install_git.sh
-bash scripts/install/install_java.sh
-bash scripts/install/install_docker.sh
-bash scripts/install/install_jenkins.sh
-bash scripts/install/install_kubectl.sh
-bash scripts/install/install_minikube.sh
-bash scripts/install/install_helm.sh
+echo "Installing Git..."
+./scripts/install/install_git.sh
 
-####################################################
-# Configure Docker
-####################################################
+echo "Installing Java..."
+./scripts/install/install_java.sh
 
-bash scripts/configure/configure_docker.sh
+echo "Installing Docker..."
+./scripts/install/install_docker.sh
+
+echo "Configuring Docker..."
+./scripts/configure/configure_docker.sh
+
+echo "Installing kubectl..."
+./scripts/install/install_kubectl.sh
+
+echo "Installing Minikube..."
+./scripts/install/install_minikube.sh
+
+echo "Configuring Minikube..."
+./scripts/configure/configure_minikube.sh
+
+echo "Installing Helm..."
+./scripts/install/install_helm.sh
+
+echo "Installing Jenkins..."
+./scripts/install/install_jenkins.sh
 
 ####################################################
 # Start Services
 ####################################################
 
-systemctl enable docker
-systemctl enable jenkins
-
-systemctl restart docker
-systemctl restart jenkins
+echo "Starting Services..."
+./scripts/configure/start_services.sh
 
 ####################################################
-# Start Minikube as ubuntu User
+# Wait for Jenkins
 ####################################################
 
-sudo -u ubuntu bash <<EOF
+echo "Waiting for Jenkins..."
 
-minikube start \
-    --driver=docker \
-    --cpus=2 \
-    --memory=2500
+until curl -fs http://localhost:8080/login >/dev/null 2>&1
+do
+    sleep 10
+done
 
-EOF
+####################################################
+# Install ArgoCD
+####################################################
+
+echo "Installing ArgoCD..."
+./scripts/install/install_argocd.sh
+
+####################################################
+# Install Monitoring
+####################################################
+
+echo "Installing Prometheus & Grafana..."
+./scripts/install/install_monitoring.sh
 
 ####################################################
 # Verify Installation
 ####################################################
 
-sudo -u ubuntu bash scripts/verify/verify_installation.sh
+echo "Running Verification..."
+./scripts/verify/verify_installation.sh
 
-echo "========================================"
-echo "Bootstrap Completed Successfully"
-echo "========================================"
+####################################################
+# Cleanup
+####################################################
+
+sudo apt-get autoremove -y
+sudo apt-get autoclean -y
+sudo apt-get clean
+
+####################################################
+# Finished
+####################################################
+
+echo "=================================================="
+echo " Bootstrap Completed Successfully"
+echo "=================================================="
+
+echo
+echo "Bootstrap Log:"
+echo "/var/log/bootstrap.log"

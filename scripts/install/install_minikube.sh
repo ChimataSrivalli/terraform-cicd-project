@@ -6,70 +6,52 @@ echo "========================================"
 echo "Installing Minikube"
 echo "========================================"
 
-####################################################
-# Check Docker
-####################################################
+# Update package index
+sudo apt-get update -y
 
-if ! systemctl is-active --quiet docker; then
-    echo "Docker is not running. Starting Docker..."
-    sudo systemctl start docker
-fi
+# Install required packages
+sudo apt-get install -y curl conntrack socat
 
-####################################################
 # Download Minikube
-####################################################
-
 curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
 
+# Install Minikube
 sudo install minikube-linux-amd64 /usr/local/bin/minikube
 
+# Clean up installer
 rm -f minikube-linux-amd64
 
-####################################################
-# Verify Installation
-####################################################
-
+# Verify installation
 echo "========================================"
-echo "Minikube Version"
-echo "========================================"
-
 minikube version
-
-####################################################
-# Delete old root-owned cluster (optional)
-####################################################
-
-sudo minikube delete >/dev/null 2>&1 || true
-
-####################################################
-# Start Minikube
-####################################################
 
 echo "========================================"
 echo "Starting Minikube"
 echo "========================================"
 
-minikube start \
+# Start Minikube using Docker driver
+sudo -u ubuntu minikube start \
     --driver=docker \
     --cpus=2 \
-    --memory=2500
-
-####################################################
-# Wait for Cluster
-####################################################
-
-kubectl wait \
-    --for=condition=Ready node/minikube \
-    --timeout=300s
-
-####################################################
-# Verify
-####################################################
-
-kubectl get nodes
-
-kubectl get pods -A
+    --memory=4096 \
+    --kubernetes-version=stable \
+    --embed-certs \
+    --wait=all
 
 echo "========================================"
-echo "Minikube installation completed."
+echo "Enabling Minikube Addons"
+echo "========================================"
+
+sudo -u ubuntu minikube addons enable ingress
+sudo -u ubuntu minikube addons enable metrics-server
+
+echo "========================================"
+echo "Cluster Information"
+echo "========================================"
+
+sudo -u ubuntu kubectl get nodes
+sudo -u ubuntu kubectl get pods -A
+
+echo "========================================"
+echo "Minikube installation completed successfully"
 echo "========================================"

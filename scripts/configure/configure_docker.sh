@@ -7,62 +7,53 @@ echo "Configuring Docker"
 echo "========================================"
 
 ####################################################
-# Check Docker Installation
+# Enable Docker
 ####################################################
 
-if ! command -v docker >/dev/null 2>&1; then
-    echo "ERROR: Docker is not installed."
-    exit 1
-fi
+sudo systemctl enable docker
+sudo systemctl start docker
 
 ####################################################
-# Create Docker Group (if it doesn't exist)
+# Add Users to Docker Group
 ####################################################
 
-if ! getent group docker >/dev/null; then
-    groupadd docker
-fi
-
-####################################################
-# Add ubuntu user to Docker group
-####################################################
-
-if id "ubuntu" &>/dev/null; then
-    usermod -aG docker ubuntu
-    echo "Added ubuntu to docker group."
-fi
-
-####################################################
-# Add jenkins user to Docker group
-####################################################
+sudo usermod -aG docker ubuntu
 
 if id "jenkins" &>/dev/null; then
-    usermod -aG docker jenkins
-    echo "Added jenkins to docker group."
+    sudo usermod -aG docker jenkins
 fi
+
+####################################################
+# Configure Docker Daemon
+####################################################
+
+sudo mkdir -p /etc/docker
+
+cat <<EOF | sudo tee /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "storage-driver": "overlay2",
+  "log-driver": "json-file",
+  "log-opts": {
+      "max-size":"10m",
+      "max-file":"3"
+  }
+}
+EOF
 
 ####################################################
 # Restart Docker
 ####################################################
 
-systemctl restart docker
+sudo systemctl restart docker
 
 ####################################################
-# Verify Docker
+# Verify
 ####################################################
 
-echo "========================================"
-echo "Docker Service Status"
-echo "========================================"
-
-systemctl is-active docker
+docker --version
+sudo docker info
 
 echo "========================================"
-echo "Docker Group Members"
-echo "========================================"
-
-getent group docker
-
-echo "========================================"
-echo "Docker configuration completed."
+echo "Docker configured successfully"
 echo "========================================"

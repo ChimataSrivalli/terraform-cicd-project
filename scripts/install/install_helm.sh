@@ -7,26 +7,33 @@ echo "Installing Helm"
 echo "========================================"
 
 ####################################################
-# Check kubectl
+# Update Packages
 ####################################################
 
-if ! command -v kubectl >/dev/null 2>&1; then
-    echo "ERROR: kubectl is not installed."
-    exit 1
-fi
+sudo apt-get update -y
+sudo apt-get install -y curl apt-transport-https gnupg
 
 ####################################################
-# Download and Install Helm
+# Add Helm GPG Key
 ####################################################
 
-curl -fsSL -o get_helm.sh \
-https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+curl https://baltocdn.com/helm/signing.asc | \
+sudo gpg --dearmor -o /usr/share/keyrings/helm.gpg
 
-chmod +x get_helm.sh
+####################################################
+# Add Helm Repository
+####################################################
 
-./get_helm.sh
+echo "deb [signed-by=/usr/share/keyrings/helm.gpg] https://baltocdn.com/helm/stable/debian/ all main" | \
+sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
 
-rm -f get_helm.sh
+####################################################
+# Install Helm
+####################################################
+
+sudo apt-get update -y
+
+sudo apt-get install -y helm
 
 ####################################################
 # Verify Installation
@@ -38,16 +45,18 @@ echo "========================================"
 
 helm version
 
-####################################################
-# Verify Kubernetes Connection
-####################################################
-
 echo "========================================"
-echo "Checking Kubernetes Cluster"
+echo "Adding Required Helm Repositories"
 echo "========================================"
 
-kubectl cluster-info
+helm repo add argo https://argoproj.github.io/argo-helm
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+
+helm repo add grafana https://grafana.github.io/helm-charts
+
+helm repo update
 
 echo "========================================"
-echo "Helm installation completed."
+echo "Helm installation completed successfully"
 echo "========================================"

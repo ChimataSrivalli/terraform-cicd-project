@@ -3,39 +3,33 @@
 set -euo pipefail
 
 echo "========================================"
-echo "Starting Services"
+echo "Configuring Minikube"
 echo "========================================"
 
 ####################################################
-# Docker
+# Wait for Cluster
 ####################################################
 
-sudo systemctl enable docker
-sudo systemctl restart docker
+kubectl wait \
+--for=condition=Ready node/minikube \
+--timeout=300s
 
 ####################################################
-# Jenkins
+# Enable Addons
 ####################################################
 
-sudo systemctl enable jenkins
-sudo systemctl restart jenkins
+minikube addons enable ingress
+
+minikube addons enable metrics-server
 
 ####################################################
 # Verify
 ####################################################
 
-echo "Docker Status"
+kubectl get nodes
 
-sudo systemctl is-active docker
-
-echo
-
-echo "Jenkins Status"
-
-sudo systemctl is-active jenkins
-
-echo
+kubectl get pods -A
 
 echo "========================================"
-echo "Services Started Successfully"
+echo "Minikube configured successfully"
 echo "========================================"
