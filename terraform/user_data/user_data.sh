@@ -11,24 +11,16 @@ echo "=================================================="
 echo " DevOps CI/CD Bootstrap Started"
 echo "=================================================="
 
-####################################################
-# Update Ubuntu
-####################################################
+REPO_DIR="/home/ubuntu/terraform-cicd-project"
 
-sudo apt-get update -y
-sudo apt-get upgrade -y
+while [ ! -d "$REPO_DIR/scripts" ]; do
+    echo "Waiting for repository to be available..."
+    sleep 10
+done
 
-####################################################
-# Move to Project Directory
-####################################################
-
-cd /workspaces/terraform-cicd-project/terraform
+cd "$REPO_DIR"
 
 chmod -R +x scripts
-
-####################################################
-# Installation Scripts
-####################################################
 
 echo "Installing Git..."
 ./scripts/install/install_git.sh
@@ -57,16 +49,8 @@ echo "Installing Helm..."
 echo "Installing Jenkins..."
 ./scripts/install/install_jenkins.sh
 
-####################################################
-# Start Services
-####################################################
-
 echo "Starting Services..."
 ./scripts/configure/start_services.sh
-
-####################################################
-# Wait for Jenkins
-####################################################
 
 echo "Waiting for Jenkins..."
 
@@ -75,43 +59,19 @@ do
     sleep 10
 done
 
-####################################################
-# Install ArgoCD
-####################################################
-
 echo "Installing ArgoCD..."
 ./scripts/install/install_argocd.sh
 
-####################################################
-# Install Monitoring
-####################################################
-
-echo "Installing Prometheus & Grafana..."
+echo "Installing Monitoring..."
 ./scripts/install/install_monitoring.sh
 
-####################################################
-# Verify Installation
-####################################################
-
-echo "Running Verification..."
+echo "Verifying Installation..."
 ./scripts/verify/verify_installation.sh
 
-####################################################
-# Cleanup
-####################################################
-
-sudo apt-get autoremove -y
-sudo apt-get autoclean -y
-sudo apt-get clean
-
-####################################################
-# Finished
-####################################################
+apt-get autoremove -y
+apt-get autoclean -y
+apt-get clean
 
 echo "=================================================="
 echo " Bootstrap Completed Successfully"
 echo "=================================================="
-
-echo
-echo "Bootstrap Log:"
-echo "/var/log/bootstrap.log"
