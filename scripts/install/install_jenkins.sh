@@ -24,8 +24,8 @@ java -version
 ####################################################
 
 sudo mkdir -p /etc/apt/keyrings
-
 curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | \
+
 sudo tee /etc/apt/keyrings/jenkins-keyring.asc >/dev/null
 
 
@@ -82,6 +82,10 @@ echo "========================================"
 
 echo "Jenkins is running on port 8080."
 echo "Access it using your EC2 public IP:"
+<<<<<<< HEAD
+=======
+
+>>>>>>> ee667f1 (2)
 echo "http://${PUBLIC_IP}:8080"
 
 echo "========================================"
